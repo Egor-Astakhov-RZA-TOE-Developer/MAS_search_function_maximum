@@ -19,6 +19,12 @@ public class SendMsgToCalculateFunc extends Behaviour {
             ACLMessage calcMsg = getAclMessageForSendCommand(receiveMsg);
 
             // Отправка команды на проведение рассчёта
+           /* try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }*/
+
             myAgent.send(calcMsg);
 
             System.out.println("Агент " + myAgent.getLocalName() + " отправил всем агентам команду \"calculate\"");

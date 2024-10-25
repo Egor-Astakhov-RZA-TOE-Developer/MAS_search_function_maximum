@@ -17,38 +17,17 @@ public class ReceiveMsgToCalculateFunc extends Behaviour {
     private int initiatorIndex = 2;
     private final double precision = StaticFunctions.PRECISION;
     private final double[] resultMass = new double[]{0, 0, 0, 0, StaticFunctions.STEP};
+    private boolean isDone = false;
 
     private int countOfReceivedMessages = 0;
+    private int countOfIterations = 0;
 
     @Override
     public void action() {
-//        MessageTemplate mt = MessageTemplate.MatchProtocol("result");
-        /*List<ACLMessage> messages = new ArrayList<>();
-        for (int i = 0; i < agentIndexes.length; i++) {
-            MessageTemplate mt = MessageTemplate.and(
-                    MessageTemplate.MatchProtocol("result"),
-                    MessageTemplate.MatchSender(new AID("func" + agentIndexes[i], false))
-            );
-            messages.add(myAgent.receive(mt));
-        }*/
-        /*MessageTemplate mt1 = MessageTemplate.and(
-                MessageTemplate.MatchProtocol("result"),
-                MessageTemplate.MatchSender(new AID("func1", false))
-        );
-        MessageTemplate mt2 = MessageTemplate.and(
-                MessageTemplate.MatchProtocol("result"),
-                MessageTemplate.MatchSender(new AID("func2", false)));
-        MessageTemplate mt3 = MessageTemplate.and(
-                MessageTemplate.MatchProtocol("result"),
-                MessageTemplate.MatchSender(new AID("func3", false)));
-
-        ACLMessage msg1 = myAgent.receive(mt1);
-        ACLMessage msg2 = myAgent.receive(mt2);
-        ACLMessage msg3 = myAgent.receive(mt3);*/
-//        if (countOfReceivedMessages > 3) countOfReceivedMessages = 0;
 
         MessageTemplate mt = MessageTemplate.MatchProtocol("result");
         ACLMessage msg = myAgent.receive(mt);
+
         if(msg != null){
             System.out.println("Агент-инициатор " + myAgent.getLocalName() +
                     " получил результаты расчёта от агента " + msg.getSender().getLocalName());
@@ -62,9 +41,10 @@ public class ReceiveMsgToCalculateFunc extends Behaviour {
 
             countOfReceivedMessages++;
         }
+        else if (countOfReceivedMessages == 3){
+            countOfIterations++;
+            countOfReceivedMessages = 0;
 
-
-        if (countOfReceivedMessages == 3){
             double fx = resultMass[0];
             double fLeftStep = resultMass[1];
             double fRightStep = resultMass[2];
@@ -76,8 +56,13 @@ public class ReceiveMsgToCalculateFunc extends Behaviour {
                     ", f(x) = " + fx + ", f(x-step) = " + fLeftStep + ", f(x+step) = " + fRightStep);
 
             double maxF = Math.max(fx, Math.max(fLeftStep, fRightStep));
+
             if(step < precision){
-                System.out.println("Найдено решение: x = " + x + ", f(x) = " + fx);
+
+                System.out.println("Найдено решение (максимум функции): x = " + x + ", f(x) = " + fx);
+                System.out.println("Общее число шагов поиска: " + countOfIterations);
+                isDone = true;
+
             } else{
                 if(maxF == fx){
                     step /= 2;
@@ -96,10 +81,9 @@ public class ReceiveMsgToCalculateFunc extends Behaviour {
                 System.out.println("Новая инициация итерации расчета агентом " + myAgent.getLocalName());
                 newXMessage.setProtocol("initiate");
 
-
                 if(initiatorIndex > 3) initiatorIndex = 1;
 
-                AID receiver = new AID("func" + initiatorIndex++, false);
+                AID receiver = new AID("func" + initiatorIndex++, AID.ISLOCALNAME);
                 newXMessage.addReceiver(receiver);
                 myAgent.send(newXMessage);
 
@@ -116,20 +100,9 @@ public class ReceiveMsgToCalculateFunc extends Behaviour {
 
     @Override
     public boolean done() {
-        return resultMass[4] < precision;
+        return isDone;
     }
 
-    private boolean isMessagesNull(List<ACLMessage> messages){
-        if (messages.isEmpty()) return true;
-        boolean flg = false;
-        for (ACLMessage msg: messages){
-            if (msg == null) {
-                flg = true;
-                break;
-            }
-        }
-        return flg;
-    }
 }
 
 

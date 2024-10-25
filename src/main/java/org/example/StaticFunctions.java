@@ -2,8 +2,8 @@ package org.example;
 
 public class StaticFunctions {
     public static double STEP = 10;
-    public static double INITIAL_X = 0.0;
-    public static double PRECISION = 1e-3;
+    public static double INITIAL_X = 100.0;
+    public static double PRECISION = 1e-6;
     public static double f1(double x){
         return - Math.pow(x, 2) + 5;
     }
